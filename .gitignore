@@ -1,0 +1,5 @@
+/storage
+.env
+sabigo
+/storage/logs
+/storage/logs/sabigo.log
