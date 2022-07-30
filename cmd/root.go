@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"log"
 	"os"
-	"sabigo/utils"
+	"sabigo/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -15,9 +14,9 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	utils.Log()
+	logger.Init()
 	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
+		logger.Error.Fatal(err)
 		os.Exit(1)
 	}
 }

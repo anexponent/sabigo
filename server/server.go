@@ -1,31 +1,31 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"sabigo/config"
+	"sabigo/logger"
 	"sabigo/routes"
-	"sabigo/utils"
 )
 
 func Serve() {
 	//register log file
-	utils.Log()
+	logger.Init()
+
 	port := config.LoadEnvironmentalVariables("PORT")
 	//Register Route Package here
 	r, err := routes.RegisterRoutes()
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Fatal(err)
 		panic(err)
 	}
-	log.Println("Started Server at port", port)
+	logger.Info.Println("Started Server at port", port)
 	err = http.ListenAndServe(":"+port, r)
 	if err != nil {
-		log.Println("Error Starting Server", err)
+		logger.Info.Fatal("Error Starting Server", err)
 		panic(err)
 	} else {
-		log.Println("Server Started at", port)
+		logger.Info.Println("Server Started at", port)
 	}
 
 }

@@ -7,5 +7,6 @@ _There are many golang web frameworks, but if you are coming from either django 
 1.  Database Migration
 2.  Database seeding
 3.  ORM
+4.  Logging
 
 
