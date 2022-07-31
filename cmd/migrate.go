@@ -91,13 +91,10 @@ var migrateUpCmd = &cobra.Command{
 			color.Unset()
 			return
 		}
-
 		DB := config.ConnectDatabase()
-
 		migrations := &migrate.FileMigrationSource{
 			Dir: migrations_path,
 		}
-
 		n, err := migrate.Exec(DB, "mysql", migrations, migrate.Up)
 		if err != nil {
 			color.Set(color.FgRed)
@@ -131,13 +128,10 @@ var migrateDownCmd = &cobra.Command{
 			color.Unset()
 			return
 		}
-
 		DB := config.ConnectDatabase()
-
 		migrations := &migrate.FileMigrationSource{
 			Dir: migrations_path,
 		}
-
 		n, err := migrate.Exec(DB, "mysql", migrations, migrate.Down)
 		if err != nil {
 			color.Set(color.FgRed)
@@ -160,14 +154,11 @@ var migrateDownCmd = &cobra.Command{
 func init() {
 	// Add "--name" flag to "create" command
 	migrateCreateCmd.Flags().StringP("name", "n", "", "Name for the migration")
-
 	// Add "--step" flag to both "up" and "down" command
 	migrateUpCmd.Flags().IntP("step", "s", 0, "Number of migrations to execute")
 	migrateDownCmd.Flags().IntP("step", "s", 0, "Number of migrations to execute")
-
 	// Add "create", "up" and "down" commands to the "migrate" command
 	migrateCmd.AddCommand(migrateUpCmd, migrateCreateCmd, migrateDownCmd)
-
 	// Add "migrate" command to the root command
 	rootCmd.AddCommand(migrateCmd)
 }
