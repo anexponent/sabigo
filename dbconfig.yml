@@ -1,0 +1,7 @@
+development:
+  dialect: mysql
+  # datasource: ${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?parseTime=true
+  datasource: root:Rkpg9Xh2f3@/gotest?parseTime=true
+  # datasource: ${DB_USER}:${DB_PASSWORD}@/${DB_HOST}?parseTime=true
+  dir: database/migrations/
+  table: migrations

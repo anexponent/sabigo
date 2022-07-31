@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterRoutes() (r *mux.Router, err error) {
-	r = mux.NewRouter()
+	r = mux.NewRouter().StrictSlash(true)
 	//Home Route
 	r.HandleFunc("/", controllers.HomeController).Methods("GET")
 
