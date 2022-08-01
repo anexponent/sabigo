@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"sabigo/config"
-	"sabigo/utils"
 	"os"
 	"path/filepath"
-	"github.com/spf13/cobra"
-	"github.com/fatih/color"
-	"github.com/rubenv/sql-migrate"
+	"sabigo/config"
+	"sabigo/utils"
 	"time"
+
+	"github.com/fatih/color"
+	migrate "github.com/rubenv/sql-migrate"
+	"github.com/spf13/cobra"
 )
 
 var migrateCmd = &cobra.Command{
@@ -41,29 +42,29 @@ var migrateCreateCmd = &cobra.Command{
 			os.Exit(1)
 			color.Unset()
 		}
-		
+
 		today := time.Now().Format("20060102150405")
 		migration_file_name := migrations_path + "/" + today + "-" + name + ".sql"
-		//check if file is existing 
-		exists, err :=utils.Exists(migration_file_name)
-		
-		if exists ==true{
+		//check if file is existing
+		exists, err := utils.Exists(migration_file_name)
+
+		if exists == true {
 			color.Set(color.FgRed)
-			fmt.Println("Error creating migration: " + name +" File Exists Already")
+			fmt.Println("Error creating migration: " + name + " File Exists Already")
 			os.Exit(1)
 			color.Unset()
 		}
 
-		file, err := os.OpenFile("./"+ migration_file_name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		file, err := os.OpenFile("./"+migration_file_name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			color.Set(color.FgRed)
 			fmt.Println(err)
 			os.Exit(1)
 			color.Unset()
-		}else{
+		} else {
 			defer file.Close()
 			_, err := file.WriteString("-- +migrate Up\n-- +migrate Down")
-			if err != nil{
+			if err != nil {
 				color.Set(color.FgRed)
 				_ = os.Remove(name + ".sql")
 				fmt.Println("Error creating migration: " + name)
@@ -92,6 +93,7 @@ var migrateUpCmd = &cobra.Command{
 			return
 		}
 		DB := config.ConnectDatabase()
+		defer DB.Close()
 		migrations := &migrate.FileMigrationSource{
 			Dir: migrations_path,
 		}
@@ -129,6 +131,7 @@ var migrateDownCmd = &cobra.Command{
 			return
 		}
 		DB := config.ConnectDatabase()
+		defer DB.Close()
 		migrations := &migrate.FileMigrationSource{
 			Dir: migrations_path,
 		}

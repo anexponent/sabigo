@@ -14,6 +14,7 @@ func RegisterRoutes() (r *mux.Router, err error) {
 	//Authentication Routes
 	r.HandleFunc("/register", controllers.Register).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+
 	r.HandleFunc("profile", controllers.Profile).Methods("POST")
 	r.HandleFunc("/reset", controllers.Reset).Methods("POST")
 	return r, err

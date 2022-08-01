@@ -4,6 +4,7 @@ import (
 	"log"
 	"sabigo/server"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +16,10 @@ func init() {
 		Short: "Serve Command to start sabiserver. Use command with port argument. e.g 'sabigo serve 9000'",
 		Long:  `Serve command to start web sabiserver`,
 		Run: func(cmd *cobra.Command, args []string) {
+			color.Set(color.FgGreen)
 			log.Println("Server Started through sabigo command")
 			server.Serve()
+			color.Unset()
 		},
 	}
 
