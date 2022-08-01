@@ -7,10 +7,14 @@ import (
 	"sabigo/logger"
 	"sabigo/models"
 
+	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
+var validate *validator.Validate
+
 func Register(w http.ResponseWriter, r *http.Request) {
+
 	logger.Init()
 
 	DB := config.ConnectDatabase()
@@ -18,10 +22,21 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
 
+	//decode json into the body
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		logger.Info.Println("Error: " + err.Error())
-		// http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	//validate user struct
+	validate = validator.New()
+	err = validate.Struct(user)
+	// var errors []string
+	if err != nil {
+		logger.Debug.Println(("Validation Error: " + err.Error()))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err.Error())
@@ -30,23 +45,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 	user.Password = string(hashed)
 	insert := user.InsertUser()
-	logger.Debug.Println(insert)
-	logger.Debug.Println(user)
-	// statement, err := DB.Prepare("insert into users(username, email, phone, password, status, created_at) values (?, ?, ?, ?, ?, ?)")
-	// if err != nil {
-	// 	logger.Error.Println(err.Error())
-	// }
-	// //execute
-	// result, err := statement.Exec(reqData.Username, reqData.Email, reqData.Phone, reqData.Password, 1, time.Now())
-	// if err != nil {
-	// 	logger.Error.Println(err.Error())
-	// }
-	// id, err := result.LastInsertId()
-	// if err != nil {
-	// 	logger.Error.Println(err.Error())
-	// }
-	// fmt.Println("Insert id", id)
-
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(insert)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {

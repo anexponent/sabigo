@@ -4,24 +4,33 @@ import (
 	"os"
 	"sabigo/config"
 	"sabigo/logger"
-	"sabigo/utils"
 	"time"
+
+	"github.com/thanhpk/randstr"
 )
 
 type User struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
+	Username        string `json:"username" validate:"required"`
+	Email           string `json:"email" validate:"required,email"`
+	Phone           string `json:"phone" validate:"required,len=11"`
+	Password        string `json:"password" validate:"required"`
+	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
 }
 
 type Token struct {
 	UserId int    `json:"userId"`
 	Token  string `json:"token"`
 }
+type CreateUserResponse struct {
+	StatusCode int    `json:"statusCode"`
+	UserId     int    `json:"userId"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Phone      string `json:"phone"`
+	Token      string `json:"token"`
+}
 
-func (u User) InsertUser() Token {
-
+func (u User) InsertUser() CreateUserResponse {
 	DB := config.ConnectDatabase()
 	defer DB.Close()
 	tx, err := DB.Begin()
@@ -60,15 +69,9 @@ func (u User) InsertUser() Token {
 		os.Exit(1)
 	}
 	defer stmt.Close()
-	token_key, err := utils.GenerateToken(128)
-	if err != nil {
-		tx.Rollback()
-		logger.Error.Println(err)
-		os.Exit(1)
-	}
 	token := Token{
 		UserId: int(user_id),
-		Token:  token_key,
+		Token:  randstr.Hex(32),
 	}
 	_, err = stmt.Exec(token.UserId, token.Token, time.Now())
 	if err != nil {
@@ -77,5 +80,13 @@ func (u User) InsertUser() Token {
 		os.Exit(1)
 	}
 	tx.Commit()
-	return token
+	response := CreateUserResponse{
+		StatusCode: 0,
+		UserId:     int(user_id),
+		Username:   u.Username,
+		Email:      u.Email,
+		Phone:      u.Phone,
+		Token:      token.Token,
+	}
+	return response
 }
