@@ -46,9 +46,8 @@ var migrateCreateCmd = &cobra.Command{
 		today := time.Now().Format("20060102150405")
 		migration_file_name := migrations_path + "/" + today + "-" + name + ".sql"
 		//check if file is existing
-		exists, err := utils.Exists(migration_file_name)
-
-		if exists == true {
+		exists, _ := utils.Exists(migration_file_name)
+		if exists {
 			color.Set(color.FgRed)
 			fmt.Println("Error creating migration: " + name + " File Exists Already")
 			os.Exit(1)
