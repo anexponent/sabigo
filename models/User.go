@@ -1,12 +1,14 @@
 package models
 
 import (
+	"net/http"
 	"os"
 	"sabigo/config"
 	"sabigo/logger"
 	"time"
 
 	"github.com/thanhpk/randstr"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -21,6 +23,7 @@ type Token struct {
 	UserId int    `json:"userId"`
 	Token  string `json:"token"`
 }
+
 type CreateUserResponse struct {
 	StatusCode int    `json:"statusCode"`
 	UserId     int    `json:"userId"`
@@ -28,6 +31,25 @@ type CreateUserResponse struct {
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	Token      string `json:"token"`
+}
+
+type UserLoginRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type UserLoginResponse struct {
+	StatusCode    int    `json:"statusCode"`
+	StatusMessage string `json:"statusMessage"`
+	Username      string `json:"username"`
+	Token         string `json:"token"`
+}
+
+type UserSelected struct {
+	UserId   int
+	Username string
+	Password string
+	Token    string
 }
 
 func (u User) InsertUser() CreateUserResponse {
@@ -61,7 +83,7 @@ func (u User) InsertUser() CreateUserResponse {
 		logger.Error.Println(err)
 		os.Exit(1)
 	}
-	//insert into
+	//insert into token
 	stmt, err = tx.Prepare(`INSERT INTO tokens(user_id, token, created_at) VALUES (?, ?, ?);`)
 	if err != nil {
 		tx.Rollback()
@@ -87,6 +109,51 @@ func (u User) InsertUser() CreateUserResponse {
 		Email:      u.Email,
 		Phone:      u.Phone,
 		Token:      token.Token,
+	}
+	return response
+}
+
+func (ul UserSelected) SelectUser(u UserLoginRequest, w http.ResponseWriter) UserLoginResponse {
+	DB := config.ConnectDatabase()
+	defer DB.Close()
+
+	response := UserLoginResponse{
+		StatusCode:    1,
+		StatusMessage: "Wrong Credentials",
+	}
+	err := DB.QueryRow("select id, password from users where phone = ? or email = ? or username = ?", u.Username, u.Username, u.Username).Scan(&ul.UserId, &ul.Password)
+	// utils.HasError(w, err, "Error Querying Database", http.StatusNotFound)
+	if err != nil {
+		logger.Error.Println("Error saving to database: ", err.Error())
+		return response
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(ul.Password), []byte(u.Password))
+	if err != nil {
+		logger.Error.Println("Error retrieving user from database: ", err.Error())
+		return response
+	}
+
+	stmt, err := DB.Prepare(`INSERT INTO tokens(user_id, token, created_at) VALUES (?, ?, ?);`)
+	if err != nil {
+		logger.Error.Println(err)
+		return response
+	}
+	defer stmt.Close()
+
+	token := randstr.Hex(32)
+
+	_, err = stmt.Exec(ul.UserId, token, time.Now())
+	if err != nil {
+		logger.Error.Println(err)
+		return response
+	}
+
+	response = UserLoginResponse{
+		StatusCode:    0,
+		StatusMessage: "Success",
+		Username:      u.Username,
+		Token:         token,
 	}
 	return response
 }

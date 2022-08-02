@@ -3,45 +3,30 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"sabigo/config"
 	"sabigo/logger"
 	"sabigo/models"
+	"sabigo/utils"
 
-	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var validate *validator.Validate
-
 func Register(w http.ResponseWriter, r *http.Request) {
-
 	logger.Init()
-
-	DB := config.ConnectDatabase()
-	defer DB.Close()
 
 	var user models.User
 
 	//decode json into the body
 	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		logger.Info.Println("Error: " + err.Error())
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+	if utils.HasError(w, err, "Decoding Eror: ", http.StatusBadRequest) {
 		return
 	}
+
 	//validate user struct
-	validate = validator.New()
-	err = validate.Struct(user)
-	// var errors []string
-	if err != nil {
-		logger.Debug.Println(("Validation Error: " + err.Error()))
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+	validated := utils.Validate(w, r, user)
+	if !validated {
 		return
 	}
+
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 	user.Password = string(hashed)
 	insert := user.InsertUser()
@@ -51,6 +36,25 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	logger.Init()
+
+	var userJson models.UserLoginRequest
+	var user models.UserSelected
+
+	err := json.NewDecoder(r.Body).Decode(&userJson)
+	if utils.HasError(w, err, "Decoding Eror: ", http.StatusBadRequest) {
+		return
+	}
+
+	//validate the json
+	if !utils.Validate(w, r, userJson) {
+		return
+	}
+
+	login := user.SelectUser(userJson, w)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(login)
 
 }
 
