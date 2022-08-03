@@ -2,20 +2,24 @@ package routes
 
 import (
 	"sabigo/controllers"
+	"sabigo/middleware"
 
 	"github.com/gorilla/mux"
 )
 
 func RegisterRoutes() (r *mux.Router, err error) {
 	r = mux.NewRouter().StrictSlash(true)
-	//Home Route
-	r.HandleFunc("/", controllers.HomeController).Methods("GET")
+	auth := r.PathPrefix("/api").Subrouter()
+	unauth := r.PathPrefix("/api").Subrouter()
+	auth.Use(middleware.AuthMiddleware)
 
-	//Authentication Routes
-	r.HandleFunc("/register", controllers.Register).Methods("POST")
-	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	unauth.HandleFunc("/", controllers.HomeController).Methods("GET")
+	unauth.HandleFunc("/register", controllers.Register).Methods("POST")
+	unauth.HandleFunc("/login", controllers.Login).Methods("POST")
 
-	r.HandleFunc("profile", controllers.Profile).Methods("POST")
-	r.HandleFunc("/reset", controllers.Reset).Methods("POST")
+	//Authenticated Routes
+	auth.HandleFunc("profile", controllers.Profile).Methods("POST")
+	auth.HandleFunc("/reset", controllers.Reset).Methods("POST")
+	auth.HandleFunc("/logout", controllers.Logout).Methods("POST")
 	return r, err
 }

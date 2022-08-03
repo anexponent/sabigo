@@ -121,7 +121,7 @@ func (ul UserSelected) SelectUser(u UserLoginRequest, w http.ResponseWriter) Use
 		StatusCode:    1,
 		StatusMessage: "Wrong Credentials",
 	}
-	err := DB.QueryRow("select id, password from users where phone = ? or email = ? or username = ?", u.Username, u.Username, u.Username).Scan(&ul.UserId, &ul.Password)
+	err := DB.QueryRow("SELECT id, password FROM users WHERE phone = ? or email = ? or username = ?", u.Username, u.Username, u.Username).Scan(&ul.UserId, &ul.Password)
 	// utils.HasError(w, err, "Error Querying Database", http.StatusNotFound)
 	if err != nil {
 		logger.Error.Println("Error saving to database: ", err.Error())
@@ -156,4 +156,11 @@ func (ul UserSelected) SelectUser(u UserLoginRequest, w http.ResponseWriter) Use
 		Token:         token,
 	}
 	return response
+}
+
+func Logout(id int) bool {
+	DB := config.ConnectDatabase()
+	defer DB.Close()
+	_, err := DB.Exec("DELETE FROM tokens WHERE user_id = ?", id)
+	return err == nil
 }
