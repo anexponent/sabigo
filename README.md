@@ -7,7 +7,7 @@ _There are many golang web frameworks, but if you are coming from either django 
 go 1.18
 
 **Features**
-1.  Database Migration
+1.  Database Migration (CLI tool)
 2.  Authentication (Basic Auth and Token Auth)
 3.  Logging
 4.  Support Mysql Database
@@ -27,7 +27,5 @@ go 1.18
      - git rebase upstream/<branch-to-merge>
      - git push origin <branch-name>
 
-
-
-
+**Environmental Setup**
 
