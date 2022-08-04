@@ -26,7 +26,7 @@ const UserIDKey ContextKey = iota
 func AuthMiddleware(next http.Handler) http.Handler {
 	var user User
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// log.Println(r.RequestURI)
+		logger.Debug.Println(r.Header)
 		reqToken := r.Header.Get("Authorization")
 		splitToken := strings.Split(reqToken, "Bearer ")
 		reqToken = splitToken[1]

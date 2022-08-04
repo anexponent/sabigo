@@ -12,6 +12,11 @@ import (
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Connection", "keep-alive")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "POST, OPTIONS, GET, DELETE, PUT")
+	w.Header().Add("Access-Control-Allow-Headers", "content-type")
+	w.Header().Add("Access-Control-Max-Age", "86400")
 	logger.Init()
 
 	var user models.User
@@ -41,7 +46,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	var userJson models.UserLoginRequest
 	var user models.UserSelected
-
+	logger.Debug.Println("Here is done")
 	err := json.NewDecoder(r.Body).Decode(&userJson)
 	if utils.HasError(w, err, "Decoding Eror: ", http.StatusBadRequest) {
 		return

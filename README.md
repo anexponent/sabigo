@@ -12,7 +12,7 @@ go 1.18
 3.  Logging
 4.  Support Mysql Database
 
-**Recommended way using this repository**
+**Recommended way of using this repository**
  - Fork or import the repository
  - Clone your forked repository
  - git remote add template https://github.com/anexponent/sabigo.git
